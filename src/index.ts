@@ -10,6 +10,14 @@ let points: number = 0;
 const element = <HTMLParagraphElement>document.querySelector("#points");
 element.innerText = `points: ${points}`;
 
+const modalPoints = <HTMLDivElement>document.querySelector("#modal");
+const pModal: HTMLParagraphElement = modalPoints.children[0] as HTMLParagraphElement
+
+const restartButton = <HTMLButtonElement>document.querySelector("button")
+restartButton.addEventListener("click", () => {
+  location.reload()
+})
+
 /**
  * TODO: acces and play video of camera
     const video = document.querySelector("#video") as HTMLVideoElement;
@@ -48,7 +56,7 @@ class Projectile extends Player {
     y: number,
     radius: number,
     color: string,
-    movement: { x: number, y: number },
+    movement: { x: number; y: number },
     velocity: number
   ) {
     super(x, y, radius, color);
@@ -67,39 +75,51 @@ class Particle {
   y: number;
   radius: number;
   color: string;
-  movement: { x: number, y: number };
+  movement: { x: number; y: number };
   velocity: number;
-  
-  constructor(x: number, y: number, radius: number, color: string, movement: {x:number, y:number}, velocity: number) {
-    this.x = x
-    this.y = y
-    this.radius = radius
-    this.color = color
-    this.movement = movement
-    this.velocity = velocity
+  alpha: number = 1;
+
+  constructor(
+    x: number,
+    y: number,
+    radius: number,
+    color: string,
+    movement: { x: number; y: number },
+    velocity: number
+  ) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.color = color;
+    this.movement = movement;
+    this.velocity = velocity;
   }
 
   draw(): void {
+    c.save();
+    c.globalAlpha = 0.1;
     c.beginPath();
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
     c.fillStyle = this.color;
     c.fill();
+    c.restore();
   }
 
   update(): void {
     this.draw();
     this.x = this.x + this.movement.x * this.velocity;
     this.y = this.y + this.movement.y * this.velocity;
+    this.alpha -= 0.01;
   }
-
-
 }
-class Enemy extends Projectile { }
+class Enemy extends Projectile {
+  pointGive: number = this.radius >= 25 ? 10 : 1
+}
 
 const player = new Player(canvas.width / 2, canvas.height / 2, 10, "white");
 let projectiles: Projectile[] = [];
 let enemies: Enemy[] = [];
-let particles: Particle[] = []
+let particles: Particle[] = [];
 
 window.addEventListener("click", (event: MouseEvent) => {
   const angle = Math.atan2(
@@ -113,7 +133,7 @@ window.addEventListener("click", (event: MouseEvent) => {
   const projectile = new Projectile(
     canvas.width / 2,
     canvas.height / 2,
-    10,
+    8,
     "white",
     movement,
     3
@@ -154,6 +174,13 @@ function animate() {
   c.fillStyle = "rgba(0, 0, 0, .1)";
   c.fillRect(0, 0, canvas.width, canvas.height);
   player.draw();
+  particles.forEach((particle, index) => {
+    if (particle.alpha <= 0) {
+      particles.splice(index, 1);
+    } else {
+      particle.update();
+    }
+  });
   projectiles.forEach((projectile, index) => {
     projectile.update();
     if (
@@ -176,6 +203,8 @@ function animate() {
     if (distance - player.radius - enemy.radius < 1) {
       cancelAnimationFrame(animationId);
       clearInterval(intervalId);
+      modalPoints.style.display = 'flex'
+      pModal.innerText = `POINTS: ${points}`
     }
 
     projectiles.forEach((projectile, projectileIndex) => {
@@ -186,6 +215,19 @@ function animate() {
 
       // when
       if (distance - player.radius - projectile.radius < 1) {
+        // create explosions
+        for (let index = 0; index < enemy.radius * 1.5; index++) {
+          particles.push(
+            new Particle(
+              enemy.x,
+              enemy.y,
+              Math.random() * 3,
+              enemy.color,
+              { x: Math.random() - 0.5, y: Math.random() - 0.5 },
+              Math.random() * 8
+            )
+          );
+        }
         if (enemy.radius >= 25) {
           gsap.to(enemy, {
             radius: enemy.radius / 2,
@@ -201,8 +243,7 @@ function animate() {
             projectiles.splice(projectileIndex, 1);
             music.currentTime = 0;
             music.play();
-            particles.push(new Particle(enemy.x, enemy.y, 5, enemy.color, {x: 1, y: 1}, 5 ), new Particle(enemy.x, enemy.y, 5, enemy.color, {x: -1, y: -1}, 5 ), new Particle(enemy.x, enemy.y, 5, enemy.color, {x: 1, y: 0}, 5 ), new Particle(enemy.x, enemy.y, 5, enemy.color, {x: 0, y: 1}, 5 ),new Particle(enemy.x, enemy.y, 5, enemy.color, {x: -1, y: 0}, 5 ), new Particle(enemy.x, enemy.y, 5, enemy.color, {x: 0, y: -1}, 5 ))
-            points++;
+            points += enemy.pointGive
             element.innerText = `points: ${points}`;
           }, 0);
         }
@@ -214,9 +255,5 @@ function animate() {
       }
     });
   });
-  particles.forEach(particle => {
-    console.log(particles)
-    particle.update()
-  })
 }
 animate();

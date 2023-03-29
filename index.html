@@ -12,9 +12,10 @@
       }
       body {
         display: grid;
+        place-items: center;
         font-family: Arial, Helvetica, sans-serif;
       }
-      p {
+      #points {
         position: fixed;
         top: 20px;
         left: 20px;
@@ -23,11 +24,42 @@
         -webkit-user-select: none;
         user-select: none;
       }
+      #modal {
+        display: none;
+        background-color: white;
+        position: fixed;
+        padding: 30px 0 20px 0;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: column;
+        top: calc(100vh / 2 - 70px);
+        margin: auto;
+        width: 70%;
+        height: 140px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 2em;
+      }
+      #modal button {
+        all: unset;
+        border-radius: 6px;
+        width: 80%;
+        text-align: center;
+        padding: 10px;
+        background-color:#476acc;
+        color: white;
+        cursor: pointer;
+        font-size: .5em;
+      }
     </style>
   </head>
   <body>
     <!-- <video id="video" width="400" height="400"></video> -->
     <p id="points"></p>
+    <div id="modal">
+      <p></p>
+      <button>RESTART</button>
+    </div>
     <canvas></canvas>
     <script type="module" src="/src/index.ts"></script>
   </body>
