@@ -48,7 +48,7 @@ class Projectile extends Player {
     y: number,
     radius: number,
     color: string,
-    movement: { x: number; y: number },
+    movement: { x: number, y: number },
     velocity: number
   ) {
     super(x, y, radius, color);
@@ -62,11 +62,44 @@ class Projectile extends Player {
     this.y = this.y + this.movement.y * this.velocity;
   }
 }
-class Enemy extends Projectile {}
+class Particle {
+  x: number;
+  y: number;
+  radius: number;
+  color: string;
+  movement: { x: number, y: number };
+  velocity: number;
+  
+  constructor(x: number, y: number, radius: number, color: string, movement: {x:number, y:number}, velocity: number) {
+    this.x = x
+    this.y = y
+    this.radius = radius
+    this.color = color
+    this.movement = movement
+    this.velocity = velocity
+  }
+
+  draw(): void {
+    c.beginPath();
+    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    c.fillStyle = this.color;
+    c.fill();
+  }
+
+  update(): void {
+    this.draw();
+    this.x = this.x + this.movement.x * this.velocity;
+    this.y = this.y + this.movement.y * this.velocity;
+  }
+
+
+}
+class Enemy extends Projectile { }
 
 const player = new Player(canvas.width / 2, canvas.height / 2, 10, "white");
-const projectiles: Projectile[] = [];
-const enemies: Enemy[] = [];
+let projectiles: Projectile[] = [];
+let enemies: Enemy[] = [];
+let particles: Particle[] = []
 
 window.addEventListener("click", (event: MouseEvent) => {
   const angle = Math.atan2(
@@ -168,6 +201,7 @@ function animate() {
             projectiles.splice(projectileIndex, 1);
             music.currentTime = 0;
             music.play();
+            particles.push(new Particle(enemy.x, enemy.y, 5, enemy.color, {x: 1, y: 1}, 5 ), new Particle(enemy.x, enemy.y, 5, enemy.color, {x: -1, y: -1}, 5 ), new Particle(enemy.x, enemy.y, 5, enemy.color, {x: 1, y: 0}, 5 ), new Particle(enemy.x, enemy.y, 5, enemy.color, {x: 0, y: 1}, 5 ),new Particle(enemy.x, enemy.y, 5, enemy.color, {x: -1, y: 0}, 5 ), new Particle(enemy.x, enemy.y, 5, enemy.color, {x: 0, y: -1}, 5 ))
             points++;
             element.innerText = `points: ${points}`;
           }, 0);
@@ -180,5 +214,9 @@ function animate() {
       }
     });
   });
+  particles.forEach(particle => {
+    console.log(particles)
+    particle.update()
+  })
 }
 animate();
